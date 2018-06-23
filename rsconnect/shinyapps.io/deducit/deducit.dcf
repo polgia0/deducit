@@ -1,0 +1,10 @@
+name: deducit
+title:
+username:
+account: deducit
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 365647
+bundleId: 1444475
+url: https://deducit.shinyapps.io/deducit/
+when: 1529742029.86676

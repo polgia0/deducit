@@ -1,0 +1,35 @@
+@import url("//fonts.googleapis.com/css?family=Lobster|Cabin:400,700");
+.content-wrapper, .right-side {
+  background-color: #ffffff;
+  }
+/* logo */
+.main-header .logo {
+  font-family: 'Lobster';
+  font-weight: bold;
+  font-size: 50px;
+  }
+.skin-blue .main-header .logo {
+  background-color: #D83131;
+  }
+/* logo when hovered */
+.skin-blue .main-header .logo:hover {
+  background-color: #D83131;
+  }
+/* navbar (rest of the header) */
+.skin-blue .main-header .navbar {
+  background-color: #D83131;
+  }
+.main-header {
+  background-color: #D83131;
+  border-top: #97BF0D solid 2px;
+  border-bottom: #97BF0D solid 2px;
+  }
+/* main sidebar */
+.skin-blue .main-sidebar {
+  background-color: #0b6623;
+  font-family: "Source Sans Pro";
+  font-weight: bold;
+  font-size: 16px;
+  }
+
+
