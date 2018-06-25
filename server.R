@@ -13,11 +13,17 @@ server = function(input, output) { # begin server
       if (ck=="1") center <- TRUE
       if (ck=="2") scale<-TRUE
     }
+    measurevar<-input$plschooser_subcol$right
+    groupvars<-input$plschooser_subcol$left
+    frm<-as.formula(paste(paste(measurevar, collapse=" + "), paste(groupvars, collapse=" + "), sep=" ~ "))
     df<-values$DS[values$rdf$left,values$cdf$left]
     df<-df[values$tdf$left,]
     XN<-scale(df, center=center, scale=scale)
+    cv<-plsr(frm,data=as.data.frame(XN),scale=TRUE,validation="CV")
     plsobj<-oscorespls.fit(as.matrix(XN[,input$plschooser_subcol$left]), as.matrix(XN[,input$plschooser_subcol$right]),ncomp=ncp)
+    #cv<-plsr(frm,data=as.data.frame(XN),scale=TRUE,validation="CV")
     plsobj$XN<-XN
+    #plsobj$cv<-cv
     values$plsdf<-plsobj
   })
   output$xplswi<-renderUI({
@@ -1051,6 +1057,26 @@ server = function(input, output) { # begin server
     res <- nearPoints(trendDS()$df,input$trend_click,"time","var",allRows=FALSE)
     values$seltrd<-c(values$seltrd,row.names(res)[1])
   })
+  output$d2varx<-renderUI({
+    selectInput("d2x", "Variable on X:",choices=values$cdf$left,selected=values$cdf$left[1])
+  })
+  output$d2vary<-renderUI({
+    selectInput("d2y", "Variable on Y:",choices=values$cdf$left,selected=values$cdf$left[2])
+  })
+  output$d2plot<-renderPlot({
+    req(input$d2x,input$d2y)
+    df<-values$DS[values$rdf$left,values$cdf$left]
+    if (!is.null(values$vargrp)){
+      gr<-factor(values$DS[values$rdf$left,values$vargrp])
+    } else{
+      gr<-factor(rep(1,nrow(df)))
+    }
+    df<-as.data.frame(df[,c(input$d2x,input$d2y)])
+    names(df)<-c("x","y")
+    plot(df$x,df$y,type='p',pch=19,col="blue",cex=2,xlab=input$d2x,ylab=input$d2y)
+    if(input$d2values)text(df$x,df$y,row.names(df),pos=4,offset=1,col="red")
+    grid()
+  })
   output$d3varx<-renderUI({
     selectInput("d3x", "Variable on X:",choices=values$cdf$left,selected=values$cdf$left[1])
   })
@@ -1096,6 +1122,18 @@ server = function(input, output) { # begin server
     plt<-ggplot(data=df.cnt,aes(x,y,group=Group,colour=z)) + geom_path() + theme_bw()
     plt<-plt+labs(title=paste("Contour Plot of",input$d3cz,sep=" "), x=input$d3cx, y = input$d3cy)
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"),axis.text.x = element_text(angle = 90, hjust = 1))
+    print(plt)
+  })
+  output$selvar<-renderUI({
+    checkboxGroupInput("selvarbox",tags$b("Inluded Variables:"),values$cdf$left,selected=NULL)
+  })
+  output$boxplot<-renderPlot({
+    req(input$selvarbox)
+    df<-values$DS[values$rdf$left,values$cdf$left]
+    df<-as.data.frame(df[,input$selvarbox])
+    names(df)<-input$selvarbox
+    plt<-boxplot(df, notch=TRUE, col=(c("gold","darkgreen")))
+    grid()
     print(plt)
   })
 } # end of server

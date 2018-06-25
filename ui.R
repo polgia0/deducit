@@ -178,7 +178,6 @@ ui <- dashboardPage(
                 fluidPage(
                   titlePanel("Viewing Data Set"),
                   br(),
-                  br(),
                   fluidRow(column(12,offset = 1,uiOutput("viewvar"))),                    
                   hr(),
                   fluidRow(mainPanel(DT::dataTableOutput("viewDS"),width=12)),
@@ -206,12 +205,9 @@ ui <- dashboardPage(
                   titlePanel("2D Plot"),
                   sidebarPanel(uiOutput("d2varx"),
                                uiOutput("d2vary"),
-                               checkboxInput("d2surf",label=tags$b("Surface"), value = FALSE, width = NULL),
-                               checkboxInput("d2values",label=tags$b("Thick Values"), value = FALSE, width = NULL)
+                               checkboxInput("d2values",label=tags$b("Value Labels"), value = FALSE, width = NULL)
                   ),
-                  box(
-                    rglwidgetOutput("d2plt",  width = 820, height = 700),
-                    background ="light-blue",width=7)
+                  fluidRow(mainPanel(plotOutput("d2plot", width ="1200px", height = "800px"),width=12))
                 )
         ),
         tabItem("3dplot",
@@ -233,6 +229,15 @@ ui <- dashboardPage(
                                sliderInput("nlev",label="# levels",min=10,max=300,value=10)
                   ),
                   fluidRow(mainPanel(plotOutput("d3contour", width ="1200px", height = "800px"),width=12))
+                )
+        ),
+        tabItem("box",
+                fluidPage(
+                  titlePanel("Box Plot"),
+                  br(),
+                  fluidRow(column(12,offset = 1,uiOutput("selvar"))),                    
+                  hr(),
+                  fluidRow(mainPanel(plotOutput("boxplot", width ="600px", height = "500px"),width=12))
                 )
         ),
         tabItem(tabName ="pca_comp",
