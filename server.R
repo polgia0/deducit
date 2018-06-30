@@ -15,15 +15,13 @@ server = function(input, output) { # begin server
     }
     measurevar<-input$plschooser_subcol$right
     groupvars<-input$plschooser_subcol$left
-    frm<-as.formula(paste(paste(measurevar, collapse=" + "), paste(groupvars, collapse=" + "), sep=" ~ "))
+    frm<-as.formula(paste('cbind(',paste(measurevar, collapse=","),") ~ ", paste(groupvars, collapse=" + "), sep=""))
     df<-values$DS[values$rdf$left,values$cdf$left]
     df<-df[values$tdf$left,]
     XN<-scale(df, center=center, scale=scale)
-    cv<-plsr(frm,data=as.data.frame(XN),scale=TRUE,validation="CV")
-    plsobj<-oscorespls.fit(as.matrix(XN[,input$plschooser_subcol$left]), as.matrix(XN[,input$plschooser_subcol$right]),ncomp=ncp)
-    #cv<-plsr(frm,data=as.data.frame(XN),scale=TRUE,validation="CV")
+    #plsobj<-oscorespls.fit(as.matrix(XN[,input$plschooser_subcol$left]), as.matrix(XN[,input$plschooser_subcol$right]),ncomp=ncp)
+    plsobj<-plsr(frm,data=as.data.frame(XN),scale=TRUE,validation="CV", segments = 10)
     plsobj$XN<-XN
-    #plsobj$cv<-cv
     values$plsdf<-plsobj
   })
   output$xplswi<-renderUI({
@@ -45,11 +43,11 @@ server = function(input, output) { # begin server
   plswiDS<-reactive({
     req(input$xselectyplswi,input$yselectyplswi)
     plsobj<-plsdf()
-    WSs<-as.data.frame(plsobj$projection)
+    WSs<-as.data.frame(plsobj$projection[,1:as.numeric(input$plsslider_ncp)])
     n1<-as.numeric(input$xselectyplswi)
     n2<-as.numeric(input$yselectyplswi)
     df<-data.frame(W1=WSs[,n1],W2=WSs[,n2])
-    list(df=df,ncp=ncol(WSs),Name=row.names(WSs))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=row.names(WSs))
   })
   output$plswidwnl<-downloadHandler(filename = "pls_wi.csv",
                                        content = function(file) {write.csv2(plswiDS()$df, file, row.names = TRUE, sep=";", dec=",")}
@@ -73,11 +71,11 @@ server = function(input, output) { # begin server
   plsqiDS<-reactive({
     req(input$xselectyplsqi,input$yselectyplsqi)
     plsobj<-plsdf()
-    Q<-plsobj$Yloadings
+    Q<-plsobj$Yloadings[,1:as.numeric(input$plsslider_ncp)]
     n1<-as.numeric(input$xselectyplsqi)
     n2<-as.numeric(input$yselectyplsqi)
     df<-data.frame(Q1=Q[,n1],Q2=Q[,n2])
-    list(df=df,ncp=ncol(Q),Name=row.names(Q))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=row.names(Q))
   })
   output$plsqidwnl<-downloadHandler(filename = "pls_qi.csv",
                                     content = function(file) {write.csv2(plsqiDS()$df, file, row.names = TRUE, sep=";", dec=",")}
@@ -101,14 +99,14 @@ server = function(input, output) { # begin server
   plswqDS<-reactive({
     req(input$xselectyplswq,input$yselectyplswq)
     plsobj<-plsdf()
-    QQ<-plsobj$Yloadings
-    WSs<-as.data.frame(plsobj$projection)
-    WSsQ<-rbind(plsobj$projection,matrix(as.numeric(QQ),nrow(QQ),ncol(QQ)))
+    QQ<-plsobj$Yloadings[,1:as.numeric(input$plsslider_ncp)]
+    WSs<-as.data.frame(plsobj$projection[,1:as.numeric(input$plsslider_ncp)])
+    WSsQ<-rbind(WSs,QQ)
     n1<-as.numeric(input$xselectyplswq)
     n2<-as.numeric(input$yselectyplswq)
     df<-data.frame(WQ1=WSsQ[,n1],WQ2=WSsQ[,n2], col=c(rep("Factor",nrow(WSs)),rep("Response",nrow(QQ))))
     df$col<-as.factor(df$col)
-    list(df=df,ncp=ncol(WSsQ),Name=c(row.names(plsobj$projection),row.names(plsobj$Yloadings)))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=c(row.names(plsobj$projection),row.names(plsobj$Yloadings)))
   })
   output$plswqdwnl<-downloadHandler(filename="pls_wq.csv",
                                     content=function(file){write.csv2(plswqDS()$df,file,row.names=TRUE,sep=";",dec=",")}
@@ -116,20 +114,20 @@ server = function(input, output) { # begin server
   output$plsht2<-renderPlot({
     plt<-ggplot(plsht2DS()$df,aes(x=obj,y=ht2))+theme_bw()
     plt<-plt+geom_bar(stat="identity",fill="steelblue")+scale_x_discrete(limits=1:plsht2DS()$nr,labels=plsht2DS()$Name)
-    plt<-plt+labs(title=paste("Hoteling T2 Plot for Model with ",toString(plsht2DS()$ncp)," Components"),x="Objects",y="T^2")
+    plt<-plt+labs(title=paste("CV Hoteling T2 Plot for Model with ",toString(plsht2DS()$ncp)," Components"),x="Objects",y="T^2")
     plt<-plt+theme(plot.title=element_text(face="bold",size="14",color="brown"),axis.text.x=element_text(angle=90,hjust = 1))
     if (as.logical(input$vplsht2))plt<-plt+geom_text(aes(label=round(ht2,digits=5)),position=position_dodge(width=0.9),vjust=-0.25)
     print(plt)
   })
   plsht2DS<-reactive({
     plsobj<-plsdf()
-    TT<-plsobj$scores
+    TT<-plsobj$scores[,1:as.numeric(input$plsslider_ncp)]
     T2<-t(TT)%*%TT
     InvT2<-ginv(T2)
     nr<-nrow(TT)
     HT2<-diag((TT%*%InvT2)%*%t(TT))/(nr-1)
     df<-data.frame(obj=1:nr,ht2=HT2)
-    list(df=df,ncp=ncol(TT),nr=nr,Name=row.names(TT))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),nr=nr,Name=row.names(TT))
   })
   output$plsht2dwnl<-downloadHandler(filename="pls_ht2.csv",
                                     content=function(file){write.csv2(plsht2DS()$df,file,row.names=TRUE,sep=";",dec=",")}
@@ -144,7 +142,7 @@ server = function(input, output) { # begin server
   output$plssco<-renderPlot({
     plt<-ggplot(plssco2DS()$df,aes(x=T1,y=T2))+theme_bw()
     plt<-plt+geom_point()+ coord_fixed()
-    plt<-plt+labs(title=paste("Score Plot for Model with ",toString(plssco2DS()$ncp)," Components"), x=paste("t",toString(input$xselectyplssco)), y = paste("t",toString(input$yselectyplssco)))
+    plt<-plt+labs(title=paste("CV Score Plot for Model with ",toString(plssco2DS()$ncp)," Components"), x=paste("t",toString(input$xselectyplssco)), y = paste("t",toString(input$yselectyplssco)))
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"))
     if (as.logical(input$vplssco))plt<-plt+geom_text(aes(label=plssco2DS()$Name),hjust = 0,nudge_x =0.01,size=5)
     if (as.logical(input$eplssco))plt<-plt+ stat_ellipse(type = "norm", linetype = 1,position = "identity",level=(100-as.numeric(input$aplssco))/100)
@@ -153,11 +151,11 @@ server = function(input, output) { # begin server
   plssco2DS<-reactive({
     req(input$xselectyplssco,input$yselectyplssco)
     plsobj<-plsdf()
-    TT<-plsobj$scores
+    TT<-plsobj$scores[,1:as.numeric(input$plsslider_ncp)]
     n1<-as.numeric(input$xselectyplssco)
     n2<-as.numeric(input$yselectyplssco)
     df<-data.frame(T1=TT[,n1],T2=TT[,n2])
-    list(df=df,ncp=ncol(TT),Name=row.names(TT))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=row.names(TT))
   })
   output$plsscodwnl<-downloadHandler(filename = "pls_sco.csv",
                                      content = function(file) {write.csv2(plsscoDS()$df, file, row.names = TRUE, sep=";", dec=",")}
@@ -165,18 +163,20 @@ server = function(input, output) { # begin server
   output$plsspex<-renderPlot({
     plt<-ggplot(plsspexDS()$df,aes(x=obj,y=spex))+theme_bw()
     plt<-plt+geom_bar(stat="identity", fill="steelblue")+scale_x_discrete(limits=1:plsspexDS()$ncx,labels=Name)
-    plt<-plt+labs(title=paste("SPEX Plot for Model with ",toString(plsspexDS()$ncp)," Components"), x="Variables", y = "SPE X")
+    plt<-plt+labs(title=paste("CV-SPEX Plot for Model with ",toString(plsspexDS()$ncp)," Components"), x="Variables", y = "SPE X")
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"),axis.text.x = element_text(angle = 90, hjust = 1))
     if (as.logical(input$vplsspex))plt<-plt+geom_text(aes(label=round(spex,digits=2)),position=position_dodge(width=0.9), vjust=-0.25)
     print(plt)
   })
   plsspexDS<-reactive({
     plsobj<-plsdf()
-    ncx<-nrow(plsobj$loadings)
+    TT<-plsobj$scores[,1:as.numeric(input$plsslider_ncp)]
+    PP<-plsobj$loadings[,1:as.numeric(input$plsslider_ncp)]
+    ncx<-nrow(PP)
     XN<-plsobj$XN[,1:ncx]
-    SPEX<-apply((plsobj$scores%*%t(plsobj$loadings)-XN)^2,2,sum)
+    SPEX<-apply((TT%*%t(PP)-XN)^2,2,sum)
     df<-data.frame(obj=1:ncx,spex=SPEX)
-    list(df=df,ncp=ncol(plsobj$scores),ncx=ncx,Name=row.names(plsobj$loadings))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),ncx=ncx,Name=row.names(PP))
   })
   output$plsspexdwnl<-downloadHandler(filename = "pls_spex.csv",
                                      content = function(file) {write.csv2(plsspexDS()$df, file, row.names = TRUE, sep=";", dec=",")}
@@ -184,7 +184,7 @@ server = function(input, output) { # begin server
   output$plsspey<-renderPlot({
     plt<-ggplot(plsspeyDS()$df,aes(x=var,y=spey))+theme_bw()
     plt<-plt+geom_bar(stat="identity",fill="steelblue")+scale_x_discrete(limits=1:plsspeyDS()$ncy,labels=plsspeyDS()$Name)
-    plt<-plt+labs(title=paste("SPEY Plot for Model with ",toString(plsspeyDS()$ncp)," Components"), x="Response", y = "SPE Y")
+    plt<-plt+labs(title=paste("CV-SPEY Plot for Model with ",toString(plsspeyDS()$ncp)," Components"), x="Response", y = "SPE Y")
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"),axis.text.x = element_text(angle = 90, hjust = 1))
     if (as.logical(input$vplsspey))plt<-plt+geom_text(aes(label=round(spey,digits=2)), position=position_dodge(width=0.9), vjust=-0.25)
     print(plt)
@@ -192,7 +192,7 @@ server = function(input, output) { # begin server
   plsspeyDS<-reactive({
     plsobj<-plsdf()
     Ey<-plsobj$residuals
-    ncp<-last(dim(plsobj$residuals))
+    ncp<-as.numeric(input$plsslider_ncp)
     Ey<-as.data.frame(Ey[,,ncp])
     SPEY<-apply(Ey^2,2,sum)
     ncy<-ncol(Ey)
@@ -221,12 +221,12 @@ server = function(input, output) { # begin server
   plstuDS<-reactive({
     req(input$xselectyplstu,input$yselectyplstu)
     plsobj<-plsdf()
-    TT<-plsobj$scores
-    UU<-plsobj$Yscores
+    TT<-plsobj$scores[,1:as.numeric(input$plsslider_ncp)]
+    UU<-plsobj$Yscores[,1:as.numeric(input$plsslider_ncp)]
     n1<-as.numeric(input$xselectyplstu)
     n2<-as.numeric(input$yselectyplstu)
     df<-data.frame(T=TT[,n1],U=UU[,n2])
-    list(df=df,ncp=ncol(TT),Name=row.names(TT))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=row.names(TT))
   })
   output$plstudwnl<-downloadHandler(filename = "pls_tu.csv",
                                       content = function(file) {write.csv2(plstuDS()$df, file, row.names = TRUE, sep=";", dec=",")}
@@ -234,18 +234,18 @@ server = function(input, output) { # begin server
   output$plsvip<-renderPlot({
     plt<-ggplot(plsvipDS()$df,aes(x=var,y=vip))+theme_bw()
     plt<-plt+geom_bar(stat="identity",fill="steelblue")+scale_x_discrete(limits=1:plsvipDS()$ncx,labels=plsvipDS()$Name)
-    plt<-plt+labs(title=paste("Variale Importance Plot (VIP) for Model with ",toString(plsvipDS()$ncp)," Components"), x="Variables", y = "VIP")
+    plt<-plt+labs(title=paste("Variable Importance Plot (VIP) for Model with ",toString(plsvipDS()$ncp)," Components"), x="Variables", y = "VIP")
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"),axis.text.x = element_text(angle = 90, hjust = 1))
     if (as.logical(input$vplssvip))plt<-plt+geom_text(aes(label=round(vip,digits=2)), position=position_dodge(width=0.9), vjust=-0.25)
     print(plt)
   })
   plsvipDS<-reactive({
     plsobj<-plsdf()
-    PP<-plsobj$loadings
-    TT<-plsobj$scores
+    PP<-plsobj$loadings[,1:as.numeric(input$plsslider_ncp)]
+    TT<-plsobj$scores[,1:as.numeric(input$plsslider_ncp)]
     ncx<-nrow(PP)
-    UU<-plsobj$Yscores
-    WW<-plsobj$loading.weights
+    UU<-plsobj$Yscores[,1:as.numeric(input$plsslider_ncp)]
+    WW<-plsobj$loading.weights[,1:as.numeric(input$plsslider_ncp)]
     T2<-t(TT)%*%TT
     U2<-t(UU)%*%UU
     W2<-WW^2
@@ -253,7 +253,7 @@ server = function(input, output) { # begin server
     SS<-diag(TU)
     VIP<-sqrt(W2%*%SS*ncx/sum(SS))
     df<-data.frame(var=1:ncx,vip=VIP)
-    list(df=df,ncp=ncol(TT),ncx=ncx,Name=row.names(PP))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),ncx=ncx,Name=row.names(PP))
   })
   output$plsvipdwnl<-downloadHandler(filename = "pls_vip.csv",
                                     content = function(file) {write.csv2(plsvipDS()$df, file, row.names = TRUE, sep=";", dec=",")}
@@ -270,7 +270,7 @@ server = function(input, output) { # begin server
       plt<-ggplot(plsfitDS()$df,aes(x=measured,y=fitted))+theme_bw()
     }
     plt<-plt+geom_point()
-    plt<-plt+labs(title="Fitted vs. Measured Values", x="Measured",y ="Fitted")
+    plt<-plt+labs(title="CV-Fitted vs. Measured Values", x="Measured",y ="Fitted")
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"))
     plt<-plt+ geom_abline(intercept = 0, slope = 1)
     print(plt)
@@ -279,7 +279,7 @@ server = function(input, output) { # begin server
     req(input$yselectyplsfit)
     plsobj<-plsdf()
     fit<-plsobj$fitted.values
-    fit<-fit[,,last(dim(fit))]
+    fit<-fit[,,as.numeric(input$plsslider_ncp)]
     mes<-plsobj$XN[,input$plschooser_subcol$right]
     if(input$yselectyplsfit=="All"){
       df<-data.frame(gather(as.data.frame(mes),key,measured),gather(as.data.frame(fit),key,fitted)[2])
@@ -310,7 +310,7 @@ server = function(input, output) { # begin server
     req(input$yselectplscoeff)
     plsobj<-plsdf()
     coeff<-plsobj$coefficients
-    coeff<-coeff[,,last(dim(coeff))]
+    coeff<-coeff[,,as.numeric(input$plsslider_ncp)]
     df<-data.frame(Name=row.names(coeff),coeff=coeff[,input$yselectplscoeff])
     list(df=df)
   })

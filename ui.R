@@ -97,11 +97,6 @@ ui <- dashboardPage(
       tabItems(
         tabItem(
           tabName = "loadf",
-          # column(
-          #   8,
-          #   offset = 1,
-          #   img(src = 'https://chi.nhlbi.nih.gov/web/sites/all/themes/irptheme/logo.png', align = "center")
-          # ),
           column(10,offset = 1,h1("Web Tool For Data Processing", style = "font-family: 'Source Sans Pro';")),
           br(),
           br(),
