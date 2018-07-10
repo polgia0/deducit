@@ -880,7 +880,7 @@ server = function(input, output) { # begin server
       values$plsdf<-NULL
       values$vargrp<-NULL
   })
-  output$value <- renderText({paste(as.character(dim(values$DS)[1]*dim(values$DS)[2]), " Values Loaded")})
+  output$loadvalue<-renderText({paste(as.character(dim(values$DS)[1]*dim(values$DS)[2]), " Values Loaded")})
   output$viewDS <-({
     DT::renderDataTable({
       DT::datatable(values$DS[values$rdf$left,values$cdf$left][values$tdf$left,input$show_varview, drop = FALSE], caption="Training Dataset with active Rows and Columns",options = list(scrollX = TRUE), rownames=FALSE)
@@ -1136,4 +1136,5 @@ server = function(input, output) { # begin server
     grid()
     print(plt)
   })
+  output$hlp_load<-renderUI({includeHTML("hlp_load.html")})
 } # end of server
