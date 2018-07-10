@@ -1136,5 +1136,11 @@ server = function(input, output) { # begin server
     grid()
     print(plt)
   })
-  output$hlp_load<-renderUI({includeHTML("hlp_load.html")})
+  output$hlp_load   <-renderUI({includeHTML("hlp_load.html")})
+  output$hlp_valcol <-renderUI({includeHTML("hlp_valcol.html")})
+  output$hlp_valrow <-renderUI({includeHTML("hlp_valrow.html")})
+  output$hlp_selgrp <-renderUI({includeHTML("hlp_selgrp.html")})
+  output$hlp_valtest<-renderUI({includeHTML("hlp_valtest.html")})
+  output$hlp_view<-renderUI({includeHTML("hlp_view.html")})
+  output$hlp_summary<-renderUI({includeHTML("hlp_summary.html")})
 } # end of server
