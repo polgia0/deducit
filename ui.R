@@ -3,7 +3,17 @@ ui <- dashboardPage(
     dropdownMenu(type = "messages",
                  messageItem(
                    from = "Author",
-                   message =HTML(paste("This is a project made under:","GPL2 by: Gianmarco Polotti", sep="<br/>")),
+                   message =HTML("Gianmarco Polotti"),
+                   time = "21/06/2018"
+                 ),
+                 messageItem(
+                   from = "Licence",
+                   message =HTML("GPL2"),
+                   time = "21/06/2018"
+                 ),
+                 messageItem(
+                   from = "Version",
+                   message =HTML(paste("Version: ","1.00", sep=" ")),
                    time = "21/06/2018"
                  ),
                  messageItem(
@@ -65,6 +75,7 @@ ui <- dashboardPage(
       ),
       menuItem("PLS", tabName = "pls", icon = shiny::icon("braille"),
             menuSubItem("Settings", tabName ="pls_comp" ),
+            menuSubItem("PRESS", tabName ="pls_press" ),
             menuSubItem("Fitted Values", tabName ="pls_fit" ),
             menuSubItem("Coefficients", tabName ="pls_coeff" ),
             menuSubItem("W*i Space", tabName = "pls_wi"),
@@ -606,6 +617,12 @@ ui <- dashboardPage(
                                         column(4,offset = 1,checkboxGroupInput("plscheckGroup", label = tags$b("Preprocessing"), choices = list("Center" = 1, "Scale" = 2),selected = c(1,2))),
                                     background ="light-blue",width=6)
                                 ),
+                                fluidRow(
+                                      box(
+                                        radioButtons("plsvalidation",label =tags$b("Validation"),choices = list("CV" = 1, "LOO" = 2, "None" = 3),selected = 1),background ="light-blue",width=6),
+                                      box(
+                                        column(10,offset = 1,sliderInput("plsegment",label =tags$b("Segments"), min = 2, max = 100, value = 10)),width=6)
+                                ),
                                 br(),
                                 box(
                                     fluidRow(column(12,offset = 1,uiOutput("plssubcol"))), 
@@ -618,6 +635,28 @@ ui <- dashboardPage(
             )
           )
         ),
+        tabItem(tabName ="pls_press",
+                fluidPage(
+                  titlePanel("PLS PRESS"),
+                  tabsetPanel(type = "tabs",
+                              tabPanel("Plot",
+                                       br(),
+                                       br(),
+                                       fluidRow(
+                                         box(
+                                           column(10,offset = 1,uiOutput("yplspress")),
+                                           background ="light-blue",width=5)
+                                       ),
+                                       br(),
+                                       br(),
+                                       fluidRow(mainPanel(plotOutput("plspress",height=600),width=12)),
+                                       br(),
+                                       downloadButton("plspressdwnl", "Download")
+                              ),
+                              tabPanel("Help", mainPanel(htmlOutput("hlp_plspress")))
+                  )
+                )
+        ),
         tabItem(tabName ="pls_fit",
           fluidPage(
             titlePanel("PLS CV Fitting"),
@@ -628,7 +667,8 @@ ui <- dashboardPage(
                                 fluidRow(
                                     box(
                                         column(10,offset = 1,uiOutput("yplsfit")),
-                                    background ="light-blue",width=5)
+                                        column(10,offset = 1,checkboxInput("plscvspread", "CV Spread", FALSE)),
+                                        background ="light-blue",width=5)
                                 ),
                                 br(),
                                 br(),
@@ -651,7 +691,7 @@ ui <- dashboardPage(
                                   box(
                                       column(4,offset = 1,uiOutput("yplscoeff")),
                                       column(4,offset = 1,checkboxInput("vplscoeff",label=tags$b("Value Labels"), value = TRUE, width = NULL)),
-                                  background ="light-blue",width=10)
+                                  background ="light-blue",width=12)
                                 ),
                                 fluidRow(mainPanel(plotOutput("plscoeff",height=600),width=12)),
                                 br(),
