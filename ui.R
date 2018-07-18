@@ -29,7 +29,7 @@ ui <- dashboardPage(
                                         "and reliability of the calculation.",
                                         "However, the results are provided",
                                         "'as is' withoutwarranty of any kind.",
-                                        "The AUthor does not accept",
+                                        "The Author does not accept",
                                         "any reponsibility or liability",
                                         "for the accuracy,content,",
                                         "completeness, legality, or",
@@ -43,65 +43,87 @@ ui <- dashboardPage(
   ),
   dashboardSidebar(
     sidebarMenu(id="sidemenu",
-      menuItem("Data Set", tabName = "dataset",icon = icon("th"),
-            menuSubItem("Load", tabName = "loadf",icon = shiny::icon("file-text")),
-            menuSubItem("Validate Variables", tabName = "valcol"),
-            menuSubItem("Validate Objects", tabName = "valrow"),
-            menuSubItem("Set Group", tabName = "grpcol"),
-            menuSubItem("Training/Test", tabName = "valtest"),
-            menuSubItem("View", tabName = "view"),
-            menuSubItem("Summary", tabName = "summary")
-      ),
-      menuItem("EDA",tabName = "charts",icon = shiny::icon("line-chart"),
-            menuSubItem("Trend", tabName = "trend"),
-            menuSubItem("Box", tabName = "box"),
-            menuSubItem("2D Plot", tabName = "2dplot"),
-            menuSubItem("3D Plot", tabName = "3dplot"),
-            menuSubItem("Contour", tabName = "3dcont")
-      ),
-      menuItem("PCA", tabName = 'pca', icon = shiny::icon("braille"),
-            menuSubItem("Settings", tabName ="pca_comp" ),
-            menuSubItem("Variance", tabName ="pca_var" ),
-            menuSubItem("Scores", tabName ="pca_scores" ),
-            menuSubItem("Loadings", tabName = "pca_load"),
-            menuSubItem("Biplot", tabName = "pca_biplt"),
-            menuSubItem("T^2 Hotelling", tabName = "pca_ht2"),
-            menuSubItem("Q-SPE", tabName ="pca_Q" ),
-            menuSubItem("Column Residuals", tabName = "pca_cres"),
-            menuSubItem("SPE Contribution", tabName = "pca_spec"),
-            menuSubItem("Score Contrib. Obj to Avg", tabName ="pca_scoavg" ),
-            menuSubItem("Score Contrib. Obj to Obj", tabName ="pca_scoo" ),
-            menuSubItem("Additional Data", tabName = "pca_add")
-      ),
-      menuItem("PLS", tabName = "pls", icon = shiny::icon("braille"),
-            menuSubItem("Settings", tabName ="pls_comp" ),
-            menuSubItem("PRESS", tabName ="pls_press" ),
-            menuSubItem("Fitted Values", tabName ="pls_fit" ),
-            menuSubItem("Coefficients", tabName ="pls_coeff" ),
-            menuSubItem("W*i Space", tabName = "pls_wi"),
-            menuSubItem("Qi Space", tabName = "pls_qi"),
-            menuSubItem("W*Qi Space", tabName ="pls_wq" ),
-            menuSubItem("T^2 Hotelling", tabName = "pls_ht2"),
-            menuSubItem("Scores", tabName = "pls_sco"),
-            menuSubItem("SPE X", tabName ="pls_spex" ),
-            menuSubItem("SPE Y", tabName ="pls_spey" ),
-            menuSubItem("T U Space", tabName ="pls_TU" ),
-            menuSubItem("VIP", tabName ="pls_VIP" ),
-            menuSubItem("Additional Data", tabName = "pls_add")
-      ),
-      hr(),
-      menuItem("Source code",icon = icon("file-code-o"),href = "https://github.com/polgia0/deducit"),
-      menuItem("Manual", icon = icon("file-pdf-o"),href = "howto.pdf")
+                menuItem("Data Set", tabName = "dataset",icon = icon("th"),
+                         menuSubItem("Example", tabName = "examples",icon = shiny::icon("file-text")),
+                         menuSubItem("Load", tabName = "loadf",icon = shiny::icon("file-text")),
+                         menuSubItem("Validate Variables", tabName = "valcol"),
+                         menuSubItem("Validate Objects", tabName = "valrow"),
+                         menuSubItem("Set Group", tabName = "grpcol"),
+                         menuSubItem("Training/Test", tabName = "valtest"),
+                         menuSubItem("View", tabName = "view"),
+                         menuSubItem("Summary", tabName = "summary")
+                ),
+                menuItem("EDA",tabName = "charts",icon = shiny::icon("line-chart"),
+                         menuSubItem("Trend", tabName = "trend"),
+                         menuSubItem("Box", tabName = "box"),
+                         menuSubItem("2D Plot", tabName = "2dplot"),
+                         menuSubItem("3D Plot", tabName = "3dplot"),
+                         menuSubItem("Contour", tabName = "3dcont")
+                ),
+                menuItem("PCA", tabName = 'pca', icon = shiny::icon("braille"),
+                         menuSubItem("Settings", tabName ="pca_comp" ),
+                         menuSubItem("Variance", tabName ="pca_var" ),
+                         menuSubItem("Scores", tabName ="pca_scores" ),
+                         menuSubItem("Loadings", tabName = "pca_load"),
+                         menuSubItem("Biplot", tabName = "pca_biplt"),
+                         menuSubItem("T^2 Hotelling", tabName = "pca_ht2"),
+                         menuSubItem("Q-SPE", tabName ="pca_Q" ),
+                         menuSubItem("Column Residuals", tabName = "pca_cres"),
+                         menuSubItem("SPE Contribution", tabName = "pca_spec"),
+                         menuSubItem("Score Contrib. Obj to Avg", tabName ="pca_scoavg" ),
+                         menuSubItem("Score Contrib. Obj to Obj", tabName ="pca_scoo" ),
+                         menuSubItem("Additional Data", tabName = "pca_add")
+                ),
+                menuItem("PLS", tabName = "pls", icon = shiny::icon("braille"),
+                         menuSubItem("Settings", tabName ="pls_comp" ),
+                         menuSubItem("PRESS", tabName ="pls_press" ),
+                         menuSubItem("Fitted Values", tabName ="pls_fit" ),
+                         menuSubItem("Coefficients", tabName ="pls_coeff" ),
+                         menuSubItem("W*i Space", tabName = "pls_wi"),
+                         menuSubItem("Qi Space", tabName = "pls_qi"),
+                         menuSubItem("W*Qi Space", tabName ="pls_wq" ),
+                         menuSubItem("T^2 Hotelling", tabName = "pls_ht2"),
+                         menuSubItem("Scores", tabName = "pls_sco"),
+                         menuSubItem("SPE X", tabName ="pls_spex" ),
+                         menuSubItem("SPE Y", tabName ="pls_spey" ),
+                         menuSubItem("T U Space", tabName ="pls_TU" ),
+                         menuSubItem("VIP", tabName ="pls_VIP" ),
+                         menuSubItem("Additional Data", tabName = "pls_add")
+                ),
+                hr(),
+                menuItem("Source code",icon = icon("file-code-o"),href = "https://github.com/polgia0/deducit"),
+                menuItem("Manual", icon = icon("file-pdf-o"),href = "howto.pdf")
     ),
     HTML('<br><br><br><br>'),
-    HTML('<p><center>Further Help ? <br>Contact the developer at <font color="cyan"><br> gianmarco.polotti @ gmail . com </font></center>')
+    HTML('<p><center>Further Help ? <br>Contact the developer at <font color="cyan"><br> gianmarco.polotti@gmail.com </font></center>')
   ),
+  
   dashboardBody(
-    tags$head(
-      tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
-    ),  
+    tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")),  
     fluidRow(
       tabItems(
+        tabItem(tabName = "examples",
+          fluidPage(
+              tabsetPanel(type = "tabs",
+                          tabPanel("Data Sets",
+                              br(),
+                              br(),
+                              fluidRow(column(12, offset=2,align="center",
+                                  box(
+                                      selectInput("selectexample", label =tags$b("Reference Data Set"),
+                                            choices = list("None"=1,"iris"=2,"USArrests"=3,"rock"=4,"airquality"=5), selected = 1),
+                                  background ="light-blue",width=6)#
+                              )),
+                              br(),
+                              br(),
+                              br(),
+                              br(),
+                              fluidRow(column(12,offset=1, align="center",mainPanel(imageOutput("logo"))))
+                          ),
+                              tabPanel("Help", mainPanel(htmlOutput("hlp_examples")))
+                          )
+              )
+        ),
         tabItem(tabName = "loadf",
           fluidPage(
               tabsetPanel(type = "tabs",
@@ -254,7 +276,7 @@ ui <- dashboardPage(
                                 br(),
                                 fluidRow(column(12,offset = 1,uiOutput("selvar"))),                    
                                 hr(),
-                                fluidRow(mainPanel(plotOutput("boxplot", width ="600px", height = "500px"),width=12))
+                                fluidRow(column(12,align="center",mainPanel(plotOutput("boxplot", width ="600px", height = "500px"),width=12)))
                         ),
                         tabPanel("Help", mainPanel(htmlOutput("hlp_box")))
             )
@@ -271,7 +293,7 @@ ui <- dashboardPage(
                                     uiOutput("d2vary"),
                                     checkboxInput("d2values",label=tags$b("Value Labels"), value = FALSE, width = NULL)
                                 ),
-                                fluidRow(mainPanel(plotOutput("d2plot", width ="1200px", height = "800px"),width=12))
+                                fluidRow(column(12,align="center",mainPanel(plotOutput("d2plot", width ="600px", height = "500px"),width=12)))
                         ),
                         tabPanel("Help", mainPanel(htmlOutput("hlp_2dplot")))
             )
@@ -289,7 +311,7 @@ ui <- dashboardPage(
                                            checkboxInput("d3surf",label=tags$b("Surface"), value = FALSE, width = NULL),
                                            checkboxInput("d3values",label=tags$b("Thick Values"), value = FALSE, width = NULL)
                                 ),
-                                fluidRow(mainPanel(mainPanel(rglwidgetOutput("d3plt",width="1200px",height="800px"),width=12)))
+                                fluidRow(column(12,align="center",rglwidgetOutput("d3plt", width ="600px", height = "500px")))
                         ),
                         tabPanel("Help", mainPanel(htmlOutput("hlp_3dplot")))
             )
@@ -896,11 +918,34 @@ ui <- dashboardPage(
                         tabPanel("Help", mainPanel(htmlOutput("hlp_plsvip")))
             )
           )
+        ),
+        tabItem(tabName ="pls_add",
+                fluidPage(
+                  titlePanel("Test Set Prediction"),
+                  tabsetPanel(type = "tabs",
+                              tabPanel("Plot",
+                                       br(),
+                                       br(),
+                                       fluidRow(
+                                         box(
+                                           column(10,offset = 1,uiOutput("yplspred")),
+                                           background ="light-blue",width=5)
+                                       ),
+                                       br(),
+                                       br(),
+                                       fluidRow(mainPanel(plotOutput("plspred",height=600),width=12)),
+                                       br(),
+                                       downloadButton("plspreddwnl", "Download")
+                              ),
+                              tabPanel("Help", mainPanel(htmlOutput("hlp_plspred")))
+                  )
+                )
         )
       )
     )
     
   )
+  
 )
 
 

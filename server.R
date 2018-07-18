@@ -28,6 +28,8 @@ server = function(input, output) { # begin server
     if(input$plsvalidation==3){
       plsobj<-plsr(frm,data=as.data.frame(XN),scale=TRUE,validation="none")
     }
+    plsobj$Center<-attr(XN,"scaled:center")
+    plsobj$Scale<-attr(XN,"scaled:scale")
     values$plsdf<-plsobj
   })
   output$xplswi<-renderUI({
@@ -71,17 +73,21 @@ server = function(input, output) { # begin server
     plt<-plt+geom_point()
     plt<-plt+labs(title=paste("Loading Plot for Model with ",toString(plsqiDS()$ncp)," Comp."), x=paste("Q",toString(input$xselectyplsqi)), y = paste("Q",toString(input$yselectyplsqi)))
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"),legend.position="none")
-    if (as.logical(input$vplsqi))plt<-plt+geom_text(aes(label=plsqiDS()$Name,colour="red"),hjust=0,nudge_x=0.01,size=5)
+    if (as.logical(input$vplsqi))plt<-plt+geom_text(aes(label=plsqiDS()$Name,colour="red"),nudge_y=0,nudge_x=0,size=5)
     print(plt)
   })
   plsqiDS<-reactive({
     req(input$xselectyplsqi,input$yselectyplsqi)
     plsobj<-plsdf()
-    Q<-plsobj$Yloadings[,1:as.numeric(input$plsslider_ncp)]
-    n1<-as.numeric(input$xselectyplsqi)
-    n2<-as.numeric(input$yselectyplsqi)
-    df<-data.frame(Q1=Q[,n1],Q2=Q[,n2])
-    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=row.names(Q))
+    QM<-plsobj$Yloadings[,1:as.numeric(input$plsslider_ncp)]
+    if(dim(plsobj$Yloadings)[1]>1){
+      df<-data.frame(Q1=QM[,as.numeric(input$xselectyplsqi)],Q2=QM[,as.numeric(input$yselectyplsqi)])
+      Name<-row.names(QM)
+    }else{
+      df<-data.frame(Q1=QM[as.numeric(input$xselectyplsqi)],Q2=QM[as.numeric(input$yselectyplsqi)])
+      Name<-input$plschooser_subcol$right
+    }
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=Name)
   })
   output$plsqidwnl<-downloadHandler(filename = "pls_qi.csv",
                                     content = function(file) {write.csv2(plsqiDS()$df, file, row.names = TRUE, sep=input$sep, dec=input$dec)}
@@ -106,13 +112,17 @@ server = function(input, output) { # begin server
     req(input$xselectyplswq,input$yselectyplswq)
     plsobj<-plsdf()
     QQ<-plsobj$Yloadings[,1:as.numeric(input$plsslider_ncp)]
+    nQQ<-nrow(QQ)
+    if(is.null(nQQ))nQQ<-1
     WSs<-as.data.frame(plsobj$projection[,1:as.numeric(input$plsslider_ncp)])
     WSsQ<-rbind(WSs,QQ)
+    Name<-row.names(QQ)
+    if(nQQ==1)Name<-input$plschooser_subcol$right
     n1<-as.numeric(input$xselectyplswq)
     n2<-as.numeric(input$yselectyplswq)
-    df<-data.frame(WQ1=WSsQ[,n1],WQ2=WSsQ[,n2], col=c(rep("Factor",nrow(WSs)),rep("Response",nrow(QQ))))
+    df<-data.frame(WQ1=WSsQ[,n1],WQ2=WSsQ[,n2], col=c(rep("Factor",nrow(WSs)),rep("Response",nQQ)))
     df$col<-as.factor(df$col)
-    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=c(row.names(plsobj$projection),row.names(plsobj$Yloadings)))
+    list(df=df,ncp=as.numeric(input$plsslider_ncp),Name=c(row.names(plsobj$projection),Name))
   })
   output$plswqdwnl<-downloadHandler(filename="pls_wq.csv",
                                     content=function(file){write.csv2(plswqDS()$df,file,row.names=TRUE,sep=input$sep,dec=input$dec)}
@@ -200,6 +210,7 @@ server = function(input, output) { # begin server
     Ey<-plsobj$residuals
     ncp<-as.numeric(input$plsslider_ncp)
     Ey<-as.data.frame(Ey[,,ncp])
+    if(ncol(Ey)==1)names(Ey)<-input$plschooser_subcol$right
     SPEY<-apply(Ey^2,2,sum)
     ncy<-ncol(Ey)
     df<-data.frame(var=1:ncy,spey=SPEY)
@@ -266,26 +277,26 @@ server = function(input, output) { # begin server
   )
   output$yplsfit<-renderUI({
     validate(need(nrow(values$DS)!=0, "You must load a DataSet"))
-    selectInput("yselectyplsfit",label=tags$b("Response"),choices=c("All",input$plschooser_subcol$right), selected = 1)
+    selectInput("yselectyplsfit",label=tags$b("Response"),choices=input$plschooser_subcol$right, selected = 1)
   })
   output$plsfit<-renderPlot({
     req(input$yselectyplsfit)
-    if((input$yselectyplsfit!="All")&(input$plscvspread==TRUE)&(input$plsvalidation!=3)){
-          df<-plsfitDS()$df
+    df<-plsfitDS()$df
+    if((input$plscvspread==TRUE)&(input$plsvalidation!=3)){
           dfcv<-plsfitDS()$YCV
           avg<-unlist(by(dfcv$value,dfcv$index,mean))
           sdev<-unlist(by(dfcv$value,dfcv$index,sd))
-          plot(df$measured,avg,xlab="Measured",ylab="Fitted")
+          xmin<-min(c(df$measured,avg))
+          xmax<-max(c(df$measured,avg))
+          plot(df$measured,avg,xlab="Measured",ylab="Fitted",xlim=c(xmin,xmax),ylim=c(xmin,xmax))
           title(main="CV-Fitted vs.Measured Values",font.main="14",col.main="brown",font.main=2,adj=0.0,line=0.3)
           arrows(df$measured,avg-3*sdev,df$measured,avg+3*sdev,length=0.05,angle=90,code=3)
           abline(0,1)
           grid()
     }else{
-          if(input$yselectyplsfit=="All"){
-            plt<-ggplot(plsfitDS()$df,aes(x=measured,y=fitted,colour=key))+theme_bw()
-          }else{
-            plt<-ggplot(plsfitDS()$df,aes(x=measured,y=fitted))+theme_bw()
-          }
+          plt<-ggplot(df,aes(x=measured,y=fitted))+theme_bw()
+          plt<-plt+xlim(min(df[,c("measured","fitted")]),max(df[,c("measured","fitted")]))
+          plt<-plt+ylim(min(df[,c("measured","fitted")]),max(df[,c("measured","fitted")]))
           plt<-plt+geom_point()
           plt<-plt+labs(title="CV-Fitted vs. Measured Values", x="Measured",y ="Fitted")
           plt<-plt+theme(plot.title=element_text(face="bold",size="14",color="brown"))
@@ -296,17 +307,16 @@ server = function(input, output) { # begin server
   plsfitDS<-reactive({
     req(input$yselectyplsfit)
     plsobj<-plsdf()
-    if (input$plsvalidation!=3)pred<-plsobj$validation$pred[,,as.numeric(input$plsslider_ncp)]
-    if (input$plsvalidation==3)pred<-plsobj$fitted.values[,,as.numeric(input$plsslider_ncp)]
-    mes<-plsobj$model[,1]
-    if(input$yselectyplsfit=="All"){
-      df<-data.frame(gather(as.data.frame(mes),key,measured),gather(as.data.frame(pred),key,fitted)[2])
-      plt<-ggplot(df,aes(x=measured,y=fitted,colour=key))+theme_bw()
+    if (input$plsvalidation!=3)Ypred<-plsobj$validation$pred[,,as.numeric(input$plsslider_ncp)]
+    if (input$plsvalidation==3)Ypred<-plsobj$fitted.values[,,as.numeric(input$plsslider_ncp)]
+    Ypred<-as.data.frame(Ypred)
+    Ymes<-as.data.frame(plsobj$model[,1])
+    if(ncol(Ypred)==1){
+        df<-data.frame(measured=unlist(Ymes),fitted=unlist(Ypred))
     }else{
-      df<-data.frame(measured=mes[,input$yselectyplsfit],fitted=pred[,input$yselectyplsfit])
-      plt<-ggplot(df,aes(x=measured,y=fitted))+theme_bw()
+        df<-data.frame(measured=Ymes[,input$yselectyplsfit],fitted=Ypred[,input$yselectyplsfit])
     }
-    if((input$yselectyplsfit!="All")&(input$plscvspread==TRUE)&(input$plsvalidation!=3)){
+    if((input$plscvspread==TRUE)&(input$plsvalidation!=3)){
       XN<-as.data.frame(plsobj$model[,-1])
       YN<-as.data.frame(plsobj$model[,1])
       YCV<-data.frame(index=NA,value=NA)
@@ -315,7 +325,11 @@ server = function(input, output) { # begin server
             for (i in 1:input$plsegment){
                 segi<-unlist(seg[i])
                 plsobji<-oscorespls.fit(as.matrix(XN[-segi,]), as.matrix(YN[-segi,]),ncomp=input$plsslider_ncp)
-                YP<-as.matrix(XN[segi,])%*%as.matrix(plsobji$coefficients[,input$yselectyplsfit,input$plsslider_ncp])
+                if(ncol(Ypred)==1){
+                      YP<-as.matrix(XN[segi,])%*%as.matrix(plsobji$coefficients[,1,input$plsslider_ncp])
+                }else{
+                      YP<-as.matrix(XN[segi,])%*%as.matrix(plsobji$coefficients[,input$yselectyplsfit,input$plsslider_ncp])
+                }
                 YCV<-rbind(YCV,data.frame(index=segi,value=YP))
             }
       }
@@ -326,6 +340,37 @@ server = function(input, output) { # begin server
   })
   output$plsfitdwnl<-downloadHandler(filename = "pls_fit.csv",
                                        content = function(file) {write.csv2(plsfitDS()$df,file,row.names = TRUE, sep=input$sep, dec=input$dec)}
+  )
+  output$yplspred<-renderUI({
+    validate(need(nrow(values$DS)!=0, "You must load a DataSet"))
+    selectInput("yselectyplspred",label=tags$b("Response"),choices=input$plschooser_subcol$right, selected = 1)
+  })
+  output$plspred<-renderPlot({
+    req(input$yselectyplspred)
+    plt<-ggplot(plspredDS()$df,aes(x=measured,y=predicted))+theme_bw()
+    plt<-plt+geom_point(size=3) + coord_fixed()
+    plt<-plt+labs(title="Test Predicted vs. Measured Values", x="Measured",y ="Predicted")
+    plt<-plt+theme(plot.title=element_text(face="bold",size="14",color="brown"))
+    plt<-plt+ geom_abline(intercept=0,slope=1)
+    print(plt)
+})
+  plspredDS<-reactive({
+    req(input$yselectyplspred)
+    plsobj<-plsdf()
+    df<-values$DS[values$rdf$left,values$cdf$left]
+    Xnew<-df[values$tdf$right,input$plschooser_subcol$left]
+    Xnew<-Xnew-(as.matrix(rep(1,nrow(Xnew)),nrow(Xnew),1)%*%plsobj$Center[input$plschooser_subcol$left])
+    Xnew<-Xnew/(as.matrix(rep(1,nrow(Xnew)),nrow(Xnew),1)%*% plsobj$Scale[input$plschooser_subcol$left])
+    Ynew<-df[values$tdf$right,input$plschooser_subcol$right]
+    Ynew<-Ynew-(as.matrix(rep(1,nrow(Xnew)),nrow(Xnew),1)%*%plsobj$Center[input$plschooser_subcol$right])
+    Ynew<-Ynew/(as.matrix(rep(1,nrow(Xnew)),nrow(Xnew),1)%*% plsobj$Scale[input$plschooser_subcol$right])
+    Ypred<-predict(plsobj,Xnew,input$plsslider_ncp,type="response", na.action = na.pass)
+    df<-data.frame(measured=Ynew[,input$yselectyplspred],predicted=Ypred[,input$yselectyplspred,])
+    a<-1
+    list(df=df)
+  })
+  output$plspreddwnl<-downloadHandler(filename = "pls_pred.csv",
+                                     content = function(file) {write.csv2(plspredDS()$df,file,row.names = TRUE, sep=input$sep, dec=input$dec)}
   )
   output$yplscoeff<-renderUI({
     validate(need(nrow(values$DS)!=0, "You must load a DataSet"))
@@ -346,12 +391,16 @@ server = function(input, output) { # begin server
     req(input$yselectplscoeff)
     plsobj<-plsdf()
     coeff<-plsobj$coefficients
-    coeff<-coeff[,,as.numeric(input$plsslider_ncp)]
-    coeffcv<-plsobj$validation$coefficients[,input$yselectplscoeff,as.numeric(input$plsslider_ncp),]
-    df<-data.frame(Name=row.names(coeff),coeff=coeff[,input$yselectplscoeff])
-    nseg<-dim(coeffcv)[2]
-    for(i in 1:nseg){df<-cbind(df,coeffcv[,i])}
-    names(df)<-c("Name","coeff",paste('coeff',1:nseg,sep=''))
+    if(dim(plsobj$coefficients)[2]>1){
+      coeff<-coeff[,input$yselectplscoeff,input$plsslider_ncp]
+      coeffcv<-plsobj$validation$coefficients[,input$yselectplscoeff,as.numeric(input$plsslider_ncp),]
+    }else{
+      coeff<-coeff[,,input$plsslider_ncp]
+      coeffcv<-plsobj$validation$coefficients[,,input$plsslider_ncp,]
+    }
+    df<-data.frame(Name=names(coeff),coeff=coeff)
+    df<-cbind(df,coeffcv)
+    names(df)<-c("Name","coeff",paste('coeff',1:dim(coeffcv)[2],sep=''))
     list(df=df)
   })
   output$plscoeffdwnl<-downloadHandler(filename = "pls_coeff.csv",
@@ -363,7 +412,7 @@ server = function(input, output) { # begin server
   })
   output$plspress<-renderPlot({
     df<-plspressDS()$df
-    cutoff <- data.frame( x =input$plsslider_ncp, y =c(-Inf, Inf), cutoff = factor(input$plsslider_ncp) )
+    cutoff<-data.frame(x=input$plsslider_ncp, y =c(-Inf, Inf),cutoff=factor(input$plsslider_ncp) )
     plt<-ggplot(df,aes(x=Comp,y=Press))+theme_bw()
     plt<-plt+geom_line(aes( x, y, linetype = cutoff),colour="black", cutoff)
     plt<-plt+geom_point(colour = 'red', size = 3)+geom_line(colour = 'red')
@@ -375,9 +424,14 @@ server = function(input, output) { # begin server
   plspressDS<-reactive({
     req(input$yselectyplspress)
     plsobj<-plsdf()
-    press<-plsobj$validation$PRESS[input$yselectyplspress,]
     ncomp<-plsobj$validation$ncomp
-    df<-data.frame(Comp=1:ncomp,Press=press)
+    if(dim(plsobj$validation$PRESS)[1]>1){
+        press<-plsobj$validation$PRESS[input$yselectyplspress,]
+        df<-data.frame(Comp=1:ncomp,Press=press)
+    }else{
+        press<-plsobj$validation$PRESS
+        df<-data.frame(Comp=1:ncomp,Press=as.numeric(t(press)))
+    }
     list(df=df)
   })
   output$plspressdwnl<-downloadHandler(filename = "pls_press.csv",
@@ -385,7 +439,7 @@ server = function(input, output) { # begin server
   )
   pcadf<-reactive({
     validate(need(nrow(values$DS)!=0, "You mut load a DataSet"))
-    req(input$pcaslider_ncp)
+    req(input$pcaslider_ncp,values)
     ncp<-as.numeric(input$pcaslider_ncp)
     center<-FALSE
     scale<-FALSE
@@ -409,8 +463,9 @@ server = function(input, output) { # begin server
     if (is.null(values$vargrp)){
       gr<-factor(rep(1,nrow(df)))
     }else{
-      gr<-data.frame(grp=values$DS[values$rdf$left,values$vargrp])
-      gr<-gr[values$tdf$left,]
+      df<-values$DS[values$rdf$left,]
+      df<-df[values$tdf$left,]
+      gr<-df[,values$vargrp]
     }
     pcaobj$gr<-gr
     pcaobj$HT2<-diag(XMT%*%t(XN))
@@ -430,10 +485,12 @@ server = function(input, output) { # begin server
     nr<-nrow(df)
     alf<-(100-as.numeric(input$alpsco))/100
     gr<-factor(pcadf()$gr)
-    plt<-plot(df,type="n",xlab="",ylab="")
     if (as.logical(input$isosco)){
       par(pty="s")
       plt<-plot(df,type="n",asp=1,xlab="",ylab="")}
+    else{
+      plt<-plot(df,type="n",xlab="",ylab="")
+    }
     for (i in 1:nlevels(gr)){
       dfi<-df[gr==levels(gr)[i],]
       coli<-rainbow(nlevels(gr))[i]
@@ -773,6 +830,7 @@ server = function(input, output) { # begin server
     Xnew<-Xnew-(as.matrix(rep(1,nrow(Xnew)),nrow(Xnew),1)%*% unlist(xm))
     Xnew<-Xnew/(as.matrix(rep(1,nrow(Xnew)),nrow(Xnew),1)%*% unlist(sd))
     sc<-as.matrix(Xnew) %*% as.matrix(pcadf()$loadings)
+    sc<-sc/(as.matrix(rep(1,nrow(sc)),nrow(sc),1)%*%pcadf()$eig)
     df1<-data.frame(n1=sc[,n1],n2=sc[,n2],typ=rep("Ts",nrow(sc)))
     df<-rbind(df,df1)
     df$typ<-factor(df$typ)
@@ -920,6 +978,33 @@ server = function(input, output) { # begin server
   })
   output$viewsum<-({
     DT::renderDataTable({DT::datatable(tabsum(),caption=tags$b("Basic Information on DataSet"),filter='none',rownames=FALSE)})
+  })
+  output$logo <- renderImage({list(src = "logo.jpg",width=500, height=500)}, deleteFile = FALSE)
+  observeEvent(input$selectexample,{
+    req(input$selectexample)
+    if(input$selectexample==2){
+      df<-iris
+    }
+    if(input$selectexample==3){
+      df<-USArrests
+    }
+    if(input$selectexample==4){
+      df<-rock
+    }
+    if(input$selectexample==5){
+      df<-airquality
+    }
+    values$DS<-df
+    values$rdf$left<-row.names(df)
+    values$tdf$left<-values$rdf$left
+    values$rdf$right<-NULL
+    values$tdf$right<-NULL
+    values$cdf$left<-names(df)
+    values$cdf$right<-NULL
+    values$selobj<-NULL
+    values$pcadf<-NULL
+    values$plsdf<-NULL
+    values$vargrp<-NULL
   })
   observeEvent(input$file1,{
       req(input$file1)
@@ -1202,6 +1287,7 @@ server = function(input, output) { # begin server
     grid()
     print(plt)
   })
+  output$hlp_examples<-renderUI({includeHTML("hlp_examples.html")})
   output$hlp_load   <-renderUI({includeHTML("hlp_load.html")})
   output$hlp_valcol <-renderUI({includeHTML("hlp_valcol.html")})
   output$hlp_valrow <-renderUI({includeHTML("hlp_valrow.html")})
@@ -1209,4 +1295,35 @@ server = function(input, output) { # begin server
   output$hlp_valtest<-renderUI({includeHTML("hlp_valtest.html")})
   output$hlp_view<-renderUI({includeHTML("hlp_view.html")})
   output$hlp_summary<-renderUI({includeHTML("hlp_summary.html")})
+  output$hlp_trend<-renderUI({includeHTML("hlp_trend.html")})
+  output$hlp_box<-renderUI({includeHTML("hlp_box.html")})
+  output$hlp_2dplot<-renderUI({includeHTML("hlp_2dplot.html")})
+  output$hlp_3dplot<-renderUI({includeHTML("hlp_3dplot.html")})
+  output$hlp_contour<-renderUI({includeHTML("hlp_contour.html")})
+  output$hlp_pcacomp<-renderUI({includeHTML("hlp_pcacomp.html")})
+  output$hlp_pcavar<-renderUI({includeHTML("hlp_pcavar.html")})
+  output$hlp_pcascores<-renderUI({includeHTML("hlp_pcascores.html")})
+  output$hlp_pcaload<-renderUI({includeHTML("hlp_pcaload.html")})
+  output$hlp_pcabiplot<-renderUI({includeHTML("hlp_pcabiplot.html")})
+  output$hlp_pcaht2<-renderUI({includeHTML("hlp_pcaht2.html")})
+  output$hlp_pcaspe<-renderUI({includeHTML("hlp_pcaspe.html")})
+  output$hlp_pcacres<-renderUI({includeHTML("hlp_pcacres.html")})
+  output$hlp_pcaspec<-renderUI({includeHTML("hlp_pcaspec.html")})
+  output$hlp_pcascoo<-renderUI({includeHTML("hlp_pcascoo.html")})
+  output$hlp_pcascoavg<-renderUI({includeHTML("hlp_pcascoavg.html")})
+  output$hlp_pcaadd<-renderUI({includeHTML("hlp_pcaadd.html")})
+  output$hlp_plscomp<-renderUI({includeHTML("hlp_plscomp.html")})
+  output$hlp_plspress<-renderUI({includeHTML("hlp_plspress.html")})
+  output$hlp_plsfit<-renderUI({includeHTML("hlp_plsfit.html")})
+  output$hlp_plscoe<-renderUI({includeHTML("hlp_plscoe.html")})
+  output$hlp_plswi<-renderUI({includeHTML("hlp_plswi.html")})
+  output$hlp_plsqi<-renderUI({includeHTML("hlp_plsqi.html")})
+  output$hlp_plswq<-renderUI({includeHTML("hlp_plswq.html")})
+  output$hlp_plsht2<-renderUI({includeHTML("hlp_plsht2.html")})
+  output$hlp_plssco<-renderUI({includeHTML("hlp_plssco.html")})
+  output$hlp_plsspex<-renderUI({includeHTML("hlp_plsspex.html")})
+  output$hlp_plsspey<-renderUI({includeHTML("hlp_plsspey.html")})
+  output$hlp_plstu<-renderUI({includeHTML("hlp_plstu.html")})
+  output$hlp_plsvip<-renderUI({includeHTML("hlp_plsvip.html")})
+  output$hlp_plspred<-renderUI({includeHTML("hlp_plspred.html")})
 } # end of server

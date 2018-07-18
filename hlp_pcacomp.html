@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>hlp_load</title>
+  </head>
+  <body>
+    <br>
+    <div align="center">
+      <h1><font size="+3"><b>Principal Component Parameter Setting<br>
+          </b></font></h1>
+    </div>
+    <br>
+    &nbsp; <span style="color: rgb(34, 34, 34); font-family:
+      sans-serif; font-size: 14px; font-style: normal;
+      font-variant-ligatures: normal; font-variant-caps: normal;
+      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
+      start; text-indent: 0px; text-transform: none; white-space:
+      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
+      0px; background-color: rgb(255, 255, 255); text-decoration-style:
+      initial; text-decoration-color: initial; display: inline
+      !important; float: none;">The Principal Component Analysis (PCA)
+      starts setting three simple parameters: the kind of preprocessing
+      of the original data (Centering and Scaling) and the number of
+      components that will be considered. It is almost universal to mean
+      centering the data to avoid the effect of different dimensions of
+      the data. Scaling, i.e.&nbsp; dividing the data by the column
+      (variable) standard deviation is also very common. Scaling is
+      helpful the maintain comparable&nbsp; the deviation (spreading) of
+      all the variables. If both preprocessing are performed Data are
+      said Autoscaled.&nbsp; The preprocessing option can be set by the
+      thick boxes on the right panel. By default autoscaling is set.<br>
+      More difficult is to fix the number of principal component that
+      need to be considered. The minimum value is 2 and the
+      maximum&nbsp; is given by the the minimum value between the number
+      of validate rows and columns ( the software consider is you
+      excluded some rows/columns in the validation part).<br>
+      You have to decide between the two limits which value is more
+      suitable for your purpose. If you do not know fix the value to the
+      maximum unless this value is not not exceptionally high (more than
+      some hundred).&nbsp; To fix the value of the considered principal
+      component considered you have to slide the left slider widget.
+      Consider that is very common change the value many times before to
+      fix it and each time the software makes the calculation again. The
+      value of the principal component considered is shwn in almost all
+      the results and plots, so you don't need t remember it. Finally
+      remember that if the number of component is the maximum any all
+      the variance is explained and some plot my be useless.<br>
+      <br>
+      &nbsp; </span><span style="color: rgb(34, 34, 34); font-family:
+      sans-serif; font-size: 14px; font-style: normal;
+      font-variant-ligatures: normal; font-variant-caps: normal;
+      font-weight: 400; letter-spacing: normal; orphans: 2; text-align:
+      start; text-indent: 0px; text-transform: none; white-space:
+      normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width:
+      0px; background-color: rgb(255, 255, 255); text-decoration-style:
+      initial; text-decoration-color: initial; display: inline
+      !important; float: none;"></span><br>
+    <br>
+    <div align="center"><img
+src="data:image/png;base64,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"
+        alt=""><br>
+      <br>
+      <div align="justify">When you fix the number of principal
+        components you have to verify that the number of variables is
+        consistent with your choice and all the variables included in
+        the Data Set are numerically processable. So, if in your Data
+        Set you have some categorial variables, useful for groupping
+        data but not to measure their properties, you have to exclude it
+        before. For variable exclusion, use the menu of variable
+        validation. Usually the Data Set processable for PCA is a fully
+        numeric Data Set.<br>
+        <br>
+      </div>
+      <span style="color: rgb(0, 0, 0); font-family: sans-serif;
+        font-size: 13.63636302947998px; font-style: normal;
+        font-variant: normal; font-weight: normal; letter-spacing:
+        normal; line-height: normal; orphans: auto; text-align: start;
+        text-indent: 0px; text-transform: none; white-space: normal;
+        widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px;
+        background-color: rgb(255, 255, 255); display: inline
+        !important; float: none;"><span style="color: rgb(0, 0, 0);
+          font-family: sans-serif; font-size: 13.63636302947998px;
+          font-style: normal; font-variant: normal; font-weight: normal;
+          letter-spacing: normal; line-height: normal; orphans: auto;
+          text-align: start; text-indent: 0px; text-transform: none;
+          white-space: normal; widows: auto; word-spacing: 0px;
+          -webkit-text-stroke-width: 0px; background-color: rgb(255,
+          255, 255); display: inline !important; float: none;"></span></span>
+    </div>
+  </body>
+</html>
