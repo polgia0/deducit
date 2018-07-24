@@ -77,7 +77,7 @@ ui <- dashboardPage(
                 menuItem("PLS", tabName = "pls", icon = shiny::icon("braille"),
                          menuSubItem("Settings", tabName ="pls_comp" ),
                          menuSubItem("PRESS", tabName ="pls_press" ),
-                         menuSubItem("Fitted Values", tabName ="pls_fit" ),
+                         menuSubItem("Predicted Values", tabName ="pls_fit" ),
                          menuSubItem("Coefficients", tabName ="pls_coeff" ),
                          menuSubItem("W*i Space", tabName = "pls_wi"),
                          menuSubItem("Qi Space", tabName = "pls_qi"),
@@ -92,7 +92,7 @@ ui <- dashboardPage(
                 ),
                 hr(),
                 menuItem("Source code",icon = icon("file-code-o"),href = "https://github.com/polgia0/deducit"),
-                menuItem("Manual", icon = icon("file-pdf-o"),href = "howto.pdf")
+                menuItem("Manual", icon = icon("file-pdf-o"),href = "Deducit_manual.pdf")
     ),
     HTML('<br><br><br><br>'),
     HTML('<p><center>Further Help ? <br>Contact the developer at <font color="cyan"><br> gianmarco.polotti@gmail.com </font></center>')
@@ -110,12 +110,10 @@ ui <- dashboardPage(
                               br(),
                               fluidRow(column(12, offset=2,align="center",
                                   box(
-                                      selectInput("selectexample", label =tags$b("Reference Data Set"),
-                                            choices = list("None"=1,"iris"=2,"USArrests"=3,"rock"=4,"airquality"=5), selected = 1),
-                                  background ="light-blue",width=6)#
+                                      selectInput("selectexample", label =tags$b("Example Data Set"),
+                                            choices = list("None"=1,"iris"=2,"USArrests"=3,"rock"=4,"airquality"=5,"gasoline"=6,"oliveoil"=7), selected = 1),
+                                  background ="light-blue",width=6)
                               )),
-                              br(),
-                              br(),
                               br(),
                               br(),
                               fluidRow(column(12,offset=1, align="center",mainPanel(imageOutput("logo"))))
@@ -132,7 +130,7 @@ ui <- dashboardPage(
                               br(),
                               column(12,offset = 1,
                                           box(
-                                            fileInput("file1", "Choose CSV File",multiple = TRUE,accept = c("text/csv","text/comma-separated-values,text/plain",".csv")),
+                                            fileInput("file_load", "Choose CSV File",multiple = TRUE,accept = c("text/csv","text/comma-separated-values,text/plain",".csv")),
                                             checkboxInput("header", "Header", TRUE),
                                             checkboxInput("rowindex", "Row Index", TRUE),
                                             radioButtons("sep","Separator",choices = c(Comma = ",",Semicolon = ";",Tab = "\t"),selected = ";"),
@@ -192,14 +190,14 @@ ui <- dashboardPage(
             titlePanel("Select Column as Group"),                       
             tabsetPanel(type = "tabs",
                         tabPanel("Select",
-                                 br(),
-                                 br(),
-                                 fluidRow(column(12,offset = 1,uiOutput("subgrp"))),                    
-                                 br(),
-                                 br(),
-                                 br(),
-                                 br(),
-                                 fluidRow(column(12,offset = 0,verbatimTextOutput("mysubgrp")))
+                                     br(),
+                                     br(),
+                                     fluidRow(column(12,offset = 1,uiOutput("subgrp"))),                    
+                                     br(),
+                                     br(),
+                                     br(),
+                                     br(),
+                                     fluidRow(column(12,offset = 0,verbatimTextOutput("mysubgrp")))
                         ),
                         tabPanel("Help", mainPanel(htmlOutput("hlp_selgrp")))
             )
@@ -261,7 +259,7 @@ ui <- dashboardPage(
                                 sidebarPanel(uiOutput("trendfilter1"),uiOutput("trend_ui1")),
                                 sidebarPanel(uiOutput("trendfilter2"),uiOutput("trend_ui2")),
                                 fluidRow(mainPanel(plotOutput("trends",height=500,click=clickOpts(id="trend_click"),brush=brushOpts(id="trend_brush",fill="#ccc",direction = "x")),width=12)),
-                                column(6,offset = 1,fluidRow(actionButton("trenddelb", "Delete Label",width ='100px'),downloadButton("trendexct", "Extract",width ='100px')))
+                                column(6,offset = 1,fluidRow(actionButton("trenddelb", "Delete Labels",width ='100px'),downloadButton("trendexct", "Extract",width ='100px')))
                         ),
                         tabPanel("Help", mainPanel(htmlOutput("hlp_trend")))
             )
@@ -285,15 +283,21 @@ ui <- dashboardPage(
         tabItem("2dplot",
           fluidPage(
             titlePanel("2D Plot"),
-            tabsetPanel(type = "tabs",
+
+          tabsetPanel(type = "tabs",
                         tabPanel("Plot",
-                                br(),
-                                br(),
-                                sidebarPanel(uiOutput("d2varx"),
-                                    uiOutput("d2vary"),
-                                    checkboxInput("d2values",label=tags$b("Value Labels"), value = FALSE, width = NULL)
-                                ),
-                                fluidRow(column(12,align="center",mainPanel(plotOutput("d2plot", width ="600px", height = "500px"),width=12)))
+                                 br(),
+                                 br(),
+                                 fluidRow(
+                                       box(    
+                                          uiOutput("d2varx"),uiOutput("d2vary"),checkboxInput("d2values",label=tags$b("Value Labels"), value = TRUE, width = NULL),
+                                      background ="light-blue",width=6) , 
+                                      box(  
+                                          verbatimTextOutput("d2plot_clickinfo"),
+                                          actionButton("d2plotgrp", "New Group",width ='100px'),actionButton("d2plotrem", "Remove",width ='100px'),
+                                      background ="light-blue",width=6)   
+                                 ),
+                                 fluidRow(plotOutput("d2plot",height=600,click=clickOpts(id="d2plot_click"),brush=brushOpts(id="d2plot_brush")))
                         ),
                         tabPanel("Help", mainPanel(htmlOutput("hlp_2dplot")))
             )

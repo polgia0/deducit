@@ -7,7 +7,7 @@
   <body>
     <br>
     <div align="center">
-      <h1><font size="+3"><b>Add Tests Data to PCA Space<br>
+      <h1><font size="+3"><b>Add Test Data to PCA Space<br>
           </b></font></h1>
     </div>
     <br>
@@ -28,18 +28,18 @@
       0px; background-color: rgb(255, 255, 255); text-decoration-style:
       initial; text-decoration-color: initial; display: inline
       !important; float: none;">his menu is used when you want to add
-      new data in the PCA space. New Data must have the same format of
+      new data in the PCA space. New data must have the same format of
       the original Data Set (i.e. the same variables) but they were not
       previously used in the model construction. This is typical when
-      you have some dta that you would like to use as a Test Set (see
-      Training/Test Set menu). The new data are centered and scaled
-      using the statistic of the original set and they are then
-      projected in the latent space. We you normally expect to see it is
-      the coincidence of the new data with the old one, i.e. the Test
-      Set superimpose to the Training Set. Viceversa the model is not
+      you have some data that you would like to use as a Test Set (see
+      Training/Test Set menu). <b>The new data are centered and scaled
+        using the statistic of the original set and they are then
+        projected in the latent space.</b> You normally expect the
+      coincidence of the new data with the old one, i.e. the Test Set
+      superimposes to the Training Set. Vice versa the model is not
       representative and some further work is required. <br>
-      As an example let's consider the Iris Data Set and make Test
-      Objects the last two objects of each Species. This is easily done
+      As an example, let's consider the Iris Data Set and make Test
+      objects the last two objects of each Species. This is easily done
       in the Training/Test menu as shown below:<br>
       <br>
     </span>
@@ -59,7 +59,7 @@ src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlkAAAKrCAIAAABNwA8CAAAgAElEQ
         model as usual and get the standard Score Plot. In the plot,
         Tests objects are not present because they are not used in the
         calculation. Please note that since we removed just few objects
-        over a big number of elements the score plot is almost unchanged<span
+        over a big number of elements the Score Plot is almost unchanged<span
           style="color: rgb(34, 34, 34); font-family: sans-serif;
           font-size: 14px; font-style: normal; font-variant-ligatures:
           normal; font-variant-caps: normal; font-weight: 400;
@@ -91,28 +91,28 @@ src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAmMAAAJkCAIAAADSr7GSAAAgAElEQ
           alt=""><br>
       </span>
       <div align="justify">When you select the Additional Data menu in
-        PCA, you get&nbsp; the the next plot. The old (Training) values
-        are in red and the new (Test) ones are in red. The colors are
-        chosen to stress the evidence between new and old, so the
-        different colors for Groups is not available. However, looking
-        at the position of the Test points in comparison with the
-        unchanged position f the Training points, it is evident that all
-        the new points are close to the cluster of their Group. This
-        validate the model at 3 components. On the plot, also the
-        ellipse of the whole Training and Test Sets are drawn. We
-        expected two ellipses are very close and similar and in this
-        case. If you don't like ellipses you can deselect the check box
-        n the top left. Vice versa you can change the significance of
-        the two ellipses scrolling the slider.<span style="color:
-          rgb(34, 34, 34); font-family: sans-serif; font-size: 14px;
-          font-style: normal; font-variant-ligatures: normal;
-          font-variant-caps: normal; font-weight: 400; letter-spacing:
-          normal; orphans: 2; text-align: start; text-indent: 0px;
-          text-transform: none; white-space: normal; widows: 2;
-          word-spacing: 0px; -webkit-text-stroke-width: 0px;
-          background-color: rgb(255, 255, 255); text-decoration-style:
-          initial; text-decoration-color: initial; display: inline
-          !important; float: none;"></span><br>
+        PCA, you get&nbsp; the next plot. The old (Training) values are
+        in red and the new ones (Test) are in blue. Colors are chosen to
+        stress the evidence between new and old, so the different colors
+        for Groups is not available for this plot. However, looking at
+        the position of the Test points in comparison with the unchanged
+        position f the Training points, it is evident that all the new
+        objects are close to the cluster of their Groups. This validate
+        the model at 3 components. On the plot, also the ellipse of the
+        whole Training and Test Sets are drawn. We expected two ellipses
+        are very close and similar as in this case. If you don't like
+        ellipses you can deselect the Check box on the top left. Vice
+        versa you can change the significance of the two ellipses
+        scrolling the alpha Slider.<span style="color: rgb(34, 34, 34);
+          font-family: sans-serif; font-size: 14px; font-style: normal;
+          font-variant-ligatures: normal; font-variant-caps: normal;
+          font-weight: 400; letter-spacing: normal; orphans: 2;
+          text-align: start; text-indent: 0px; text-transform: none;
+          white-space: normal; widows: 2; word-spacing: 0px;
+          -webkit-text-stroke-width: 0px; background-color: rgb(255,
+          255, 255); text-decoration-style: initial;
+          text-decoration-color: initial; display: inline !important;
+          float: none;"></span><br>
         <span style="color: rgb(34, 34, 34); font-family: sans-serif;
           font-size: 14px; font-style: normal; font-variant-ligatures:
           normal; font-variant-caps: normal; font-weight: 400;
@@ -147,7 +147,7 @@ src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAo0AAAKRCAIAAAC+2wT6AAAgAElEQ
           255, 255); text-decoration-style: initial;
           text-decoration-color: initial; display: inline !important;
           float: none;">You can get the projection of the Test Set in
-          the csv file just pushing the Download button.</span><br>
+          the CSV file just pushing the <i>Download</i> button.</span><br>
         <span style="color: rgb(34, 34, 34); font-family: sans-serif;
           font-size: 14px; font-style: normal; font-variant-ligatures:
           normal; font-variant-caps: normal; font-weight: 400;
