@@ -548,7 +548,7 @@ server = function(input, output) { # begin server
     pcav<-round(pcadf()$R2[c(n1,n2)]*100, digits=1)
     Name<-row.names(as.data.frame(pcadf()$scores))
     df<-data.frame(n1=pcadf()$scores[,n1],n2=pcadf()$scores[,n2])
-    list(df=df,ncomp=c(n1,n2),R=pcav,Name=Name)
+    list(df=na.omit(df),ncomp=c(n1,n2),R=pcav,Name=Name)
   })
   output$pcascoredwnl<-downloadHandler(filename = "pca_scores.csv",
                                        content = function(file) {write.csv2(pcascoreDS()$df, file, row.names = TRUE, sep=input$sep, dec=input$dec)}
@@ -681,19 +681,21 @@ server = function(input, output) { # begin server
   pcaht2DS<-reactive({
     req(input$pcaslider_ncp)
     np<-length(pcadf()$HT2)
-    df<-data.frame(obj=1:np,ht2=pcadf()$HT2)
-    list(df=df,np=np,ncp=as.numeric(input$pcaslider_ncp),Name=row.names(pcadf()$scores),gr=pcadf()$gr)
+    df<-data.frame(obj=1:np,ht2=pcadf()$HT2,gr=pcadf()$gr,Name=row.names(pcadf()$scores))
+    df<-na.omit(df)
+    list(df=df,np=np,ncp=as.numeric(input$pcaslider_ncp))
   })
   output$pcaht2<-renderPlot({
     ncp<-pcaht2DS()$ncp
-    Name<-pcaht2DS()$Name
     np<-pcaht2DS()$np
-    gr<-factor(pcaht2DS()$gr)
+    df<-pcaht2DS()$df
+    Name<-df$Name
+    gr<-factor(df$gr)
     ngr<-nlevels(gr)
     alf<-1-input$alpht/100
     cf<-round((np-1)*ncp/(np-ncp)*sqrt(qf(alf,ncp,np-ncp)), digit=2)
     cutoff<-data.frame( x = c(-Inf, Inf), y =cf, cutoff = factor(cf) )
-    plt<-ggplot(pcaht2DS()$df,aes(x=obj,y=ht2))+theme_bw()
+    plt<-ggplot(df,aes(x=obj,y=ht2))+theme_bw()
     plt<-plt+geom_bar(stat="identity", fill=rainbow(ngr)[gr])
     plt<-plt+scale_x_discrete(limits=1:np,labels=Name)
     plt<-plt+labs(title=paste("Hoteling T2 - total components :",toString(ncp), sep=' '),x="Objects",y="T2")
@@ -708,20 +710,23 @@ server = function(input, output) { # begin server
   pcaQDS<-reactive({
     req(input$pcaslider_ncp)
     np<-length(pcadf()$Q)
-    df<-data.frame(obj=1:np,Q=pcadf()$Q)
-    list(df=df,np=np,ncp=as.numeric(input$pcaslider_ncp),Name=row.names(pcadf()$scores),gr=pcadf()$gr)
+    df<-data.frame(obj=1:np,Q=pcadf()$Q,gr=pcadf()$gr,Name=row.names(pcadf()$scores))
+    df<-na.omit(df)
+    list(df=df,np=np,ncp=as.numeric(input$pcaslider_ncp))
   })
   output$pcaQ<-renderPlot({
     ncp<-pcaQDS()$ncp
     np<-pcaQDS()$np
+    df<-pcaQDS()$df
+    Name<-df$Name
+    gr<-factor(df$gr)
     alf<-1-input$alpQ/100
-    gr<-factor(pcaQDS()$gr)
     ngr<-nlevels(gr)
     cf<-round((np-1)*ncp/(np-ncp)*sqrt(qf(alf,ncp,np-ncp)), digit=2)
     cutoff<-data.frame(x=c(-Inf,Inf),y=cf,cutoff=factor(cf) )
-    plt<-ggplot(pcaQDS()$df,aes(x=obj,y=Q))+theme_bw()
+    plt<-ggplot(df,aes(x=obj,y=Q))+theme_bw()
     plt<-plt+geom_bar(stat="identity",fill=rainbow(ngr)[gr])
-    plt<-plt+scale_x_discrete(limits=1:np,labels=pcaQDS()$Name)
+    plt<-plt+scale_x_discrete(limits=1:np,labels=Name)
     plt<-plt+labs(title=paste("Q, SPE - total components :",toString(ncp), sep=' '),x="Objects",y="Q-SPE")
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"),axis.text.x=element_text(angle = 90, hjust = 1),legend.position="none")
     if (input$linQ)plt<-plt+geom_line(aes(x,y,linetype = cutoff,color='red' ), cutoff)
@@ -1052,6 +1057,10 @@ server = function(input, output) { # begin server
     values$pcadf<-NULL
     values$plsdf<-NULL
     values$vargrp<-NULL
+    values$selobj2D<-NULL
+    values$selobj<-NULL
+    values$seltrd<-NULL
+    values$rowsel<-NULL
   })
   observeEvent(input$file_load,{
       req(input$file_load)
@@ -1077,6 +1086,10 @@ server = function(input, output) { # begin server
       values$pcadf<-NULL
       values$plsdf<-NULL
       values$vargrp<-NULL
+      values$selobj2D<-NULL
+      values$selobj<-NULL
+      values$seltrd<-NULL
+      values$rowsel<-NULL
   })
   output$loadvalue<-renderText({
     validate(need(nrow(values$DS)!=0,""))
@@ -1272,7 +1285,7 @@ server = function(input, output) { # begin server
   output$d2plot<-renderPlot({
     req(input$d2x,input$d2y)
     df<-d2plotDS()$df
-    gr<-d2plotDS()$gr
+    gr<-df$gr
     plt<-plot(df$x,df$y,type='n',pch=19,col="blue",cex=2,xlab=input$d2x,ylab=input$d2y)
     for (i in 1:nlevels(gr)){
       dfi<-df[gr==levels(gr)[i],]
@@ -1292,8 +1305,9 @@ server = function(input, output) { # begin server
       gr<-factor(rep(1,nrow(df)))
     }
     df<-as.data.frame(df[,c(input$d2x,input$d2y)])
-    names(df)<-c("x","y")
-    list(df=df,gr=gr)
+    df<-cbind(df,gr)
+    names(df)<-c("x","y","gr")
+    list(df=na.omit(df))
   })
   observeEvent(input$d2plot_click, {
     Dres<-nearPoints(d2plotDS()$df,input$d2plot_click,"x","y",allRows=FALSE)
@@ -1353,9 +1367,11 @@ server = function(input, output) { # begin server
     } else{
       gr<-factor(rep(1,nrow(df)))
     }
+    df<-cbind(df,gr)
+    df<-na.omit(df)
     rgl.open(useNULL=TRUE)
     scatter3d(x=df[,input$d3x],y=df[,input$d3y],z=df[,input$d3z],point.col="blue",surface=input$d3surf,
-    xlab=input$d3x,ylab=input$d3y,zlab=input$d3z,groups=gr,axis.ticks=TRUE,ticktype = "detailed")
+    xlab=input$d3x,ylab=input$d3y,zlab=input$d3z,groups=df[,"gr"],axis.ticks=TRUE,ticktype = "detailed")
     rglwidget()
   })    
   output$d3contx<-renderUI({
@@ -1376,8 +1392,10 @@ server = function(input, output) { # begin server
       gr<-factor(rep(1,nrow(df)))
     }
     df<-df[,c(input$d3cx,input$d3cy,input$d3cz)]
-    names(df)<-c("x","y","z")
-    df.cnt<-getContourLines(df,nlevels=as.numeric(input$nlev))
+    df<-cbind(df,gr)
+    names(df)<-c("x","y","z","gr")
+    df<-na.omit(df)
+    df.cnt<-getContourLines(df[,c("x","y","z")],nlevels=as.numeric(input$nlev))
     plt<-ggplot(data=df.cnt,aes(x,y,group=Group,colour=z)) + geom_path() + theme_bw()
     plt<-plt+labs(title=paste("Contour Plot of",input$d3cz,sep=" "), x=input$d3cx, y = input$d3cy)
     plt<-plt+theme(plot.title=element_text(face="bold",size="14", color="brown"),axis.text.x = element_text(angle = 90, hjust = 1))

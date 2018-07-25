@@ -5,8 +5,8 @@ account: deducit
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 365647
-bundleId: 1497542
+bundleId: 1498675
 url: https://deducit.shinyapps.io/deducit/
-when: 1532453541.20067
+when: 1532506525.70529
 asMultiple: FALSE
 asStatic: FALSE
